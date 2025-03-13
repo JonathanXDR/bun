@@ -182,7 +182,6 @@ pub fn appendEnvpFromJS(globalThis: *JSC.JSGlobalObject, object: JSC.JSValue, en
 }
 
 const log = Output.scoped(.Subprocess, false);
-const default_max_buffer_size = 1024 * 1024 * 4;
 pub const StdioKind = enum {
     stdin,
     stdout,
@@ -417,7 +416,7 @@ const Readable = union(enum) {
         }
     }
 
-    pub fn init(stdio: Stdio, event_loop: *JSC.EventLoop, process: *Subprocess, result: StdioResult, allocator: std.mem.Allocator, max_size: u32, is_sync: bool) Readable {
+    pub fn init(stdio: Stdio, event_loop: *JSC.EventLoop, process: *Subprocess, result: StdioResult, allocator: std.mem.Allocator, max_size: ?i64, is_sync: bool) Readable {
         _ = allocator; // autofix
         _ = max_size; // autofix
         _ = is_sync; // autofix
@@ -1923,6 +1922,7 @@ pub fn spawnMaybeSync(
     var ipc_channel: i32 = -1;
     var timeout: ?i32 = null;
     var killSignal: SignalCode = SignalCode.default;
+    var maxBuffer: ?i64 = null;
 
     var windows_hide: bool = false;
     var windows_verbatim_arguments: bool = false;
@@ -2125,10 +2125,18 @@ pub fn spawnMaybeSync(
             if (try args.get(globalThis, "killSignal")) |val| {
                 killSignal = try parseSignal(val, globalThis);
             }
+
+            if (try args.get(globalThis, "maxBuffer")) |val| {
+                if (val.isNumber()) {
+                    maxBuffer = val.coerce(i64, globalThis);
+                }
+            }
         } else {
             try getArgv(globalThis, cmd_value, PATH, cwd, &argv0, allocator, &argv);
         }
     }
+
+    log("spawn maxBuffer: {?d}", .{maxBuffer});
 
     if (!override_env and env_array.items.len == 0) {
         env_array.items = jsc_vm.transpiler.env.map.createNullDelimitedEnvMap(allocator) catch |err| return globalThis.throwError(err, "in Bun.spawn") catch return .zero;
@@ -2311,7 +2319,7 @@ pub fn spawnMaybeSync(
             subprocess,
             spawned.stdout,
             jsc_vm.allocator,
-            default_max_buffer_size,
+            maxBuffer,
             is_sync,
         ),
         .stderr = Readable.init(
@@ -2320,7 +2328,7 @@ pub fn spawnMaybeSync(
             subprocess,
             spawned.stderr,
             jsc_vm.allocator,
-            default_max_buffer_size,
+            maxBuffer,
             is_sync,
         ),
         // 1. JavaScript.
