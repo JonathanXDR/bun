@@ -416,7 +416,7 @@ const Readable = union(enum) {
         }
     }
 
-    pub fn init(stdio: Stdio, event_loop: *JSC.EventLoop, process: *Subprocess, result: StdioResult, allocator: std.mem.Allocator, max_size: ?i64, is_sync: bool) Readable {
+    pub fn init(stdio: Stdio, event_loop: *JSC.EventLoop, process: *Subprocess, result: StdioResult, allocator: std.mem.Allocator, max_size: ?u64, is_sync: bool) Readable {
         _ = allocator; // autofix
         _ = is_sync; // autofix
         _ = max_size; // autofix
@@ -1063,9 +1063,9 @@ pub const PipeReader = struct {
         return this;
     }
 
-    pub fn readAll(this: *PipeReader) void {
+    pub fn readAll(this: *PipeReader, limit: ?*u64) void {
         if (this.state == .pending)
-            this.reader.read();
+            this.reader.read(limit);
     }
 
     pub fn start(this: *PipeReader, process: *Subprocess, event_loop: *JSC.EventLoop) JSC.Maybe(void) {
@@ -1213,6 +1213,10 @@ pub const PipeReader = struct {
 
         this.reader.deinit();
         this.destroy();
+    }
+
+    pub fn getLimit(_: *PipeReader) ?*u64 {
+        return null;
     }
 };
 
@@ -1910,7 +1914,7 @@ pub fn spawnMaybeSync(
     var ipc_channel: i32 = -1;
     var timeout: ?i32 = null;
     var killSignal: SignalCode = SignalCode.default;
-    var maxBuffer: ?i64 = null;
+    var maxBuffer: ?u64 = null;
 
     var windows_hide: bool = false;
     var windows_verbatim_arguments: bool = false;
@@ -2116,7 +2120,7 @@ pub fn spawnMaybeSync(
 
             if (try args.get(globalThis, "maxBuffer")) |val| {
                 if (val.isNumber()) {
-                    maxBuffer = val.coerce(i64, globalThis);
+                    maxBuffer = std.math.cast(u64, val.coerce(i64, globalThis));
                 }
             }
         } else {
@@ -2421,7 +2425,11 @@ pub fn spawnMaybeSync(
     if (subprocess.stdout == .pipe) {
         subprocess.stdout.pipe.start(subprocess, loop).assert();
         if ((is_sync or !lazy) and subprocess.stdout == .pipe) {
-            subprocess.stdout.pipe.readAll();
+            var maxbuf: u64 = if (maxBuffer) |m| m else 0;
+            subprocess.stdout.pipe.readAll(if (maxBuffer != null) &maxbuf else null);
+            if (maxBuffer != null and maxbuf == 0) {
+                _ = subprocess.tryKill(subprocess.killSignal);
+            }
         }
     }
 
@@ -2429,7 +2437,11 @@ pub fn spawnMaybeSync(
         subprocess.stderr.pipe.start(subprocess, loop).assert();
 
         if ((is_sync or !lazy) and subprocess.stderr == .pipe) {
-            subprocess.stderr.pipe.readAll();
+            var maxbuf: u64 = if (maxBuffer) |m| m else 0;
+            subprocess.stderr.pipe.readAll(if (maxBuffer != null) &maxbuf else null);
+            if (maxBuffer != null and maxbuf == 0) {
+                _ = subprocess.tryKill(subprocess.killSignal);
+            }
         }
     }
 

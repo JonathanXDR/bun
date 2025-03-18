@@ -18,33 +18,34 @@ pub fn PosixPipeReader(
         done: *const fn (*This) void,
         close: *const fn (*This) void,
         onError: *const fn (*This, bun.sys.Error) void,
+        getLimit: *const fn (*This) ?*u64,
     },
 ) type {
     return struct {
-        pub fn read(this: *This) void {
+        pub fn read(this: *This, limit: ?*u64) void {
             const buffer = vtable.getBuffer(this);
             const fd = vtable.getFd(this);
 
             switch (vtable.getFileType(this)) {
                 .nonblocking_pipe => {
-                    readPipe(this, buffer, fd, 0, false);
+                    readPipe(this, buffer, fd, 0, false, limit);
                     return;
                 },
                 .file => {
-                    readFile(this, buffer, fd, 0, false);
+                    readFile(this, buffer, fd, 0, false, limit);
                     return;
                 },
                 .socket => {
-                    readSocket(this, buffer, fd, 0, false);
+                    readSocket(this, buffer, fd, 0, false, limit);
                     return;
                 },
                 .pipe => {
                     switch (bun.isReadable(fd)) {
                         .ready => {
-                            readFromBlockingPipeWithoutBlocking(this, buffer, fd, 0, false);
+                            readFromBlockingPipeWithoutBlocking(this, buffer, fd, 0, false, limit);
                         },
                         .hup => {
-                            readFromBlockingPipeWithoutBlocking(this, buffer, fd, 0, true);
+                            readFromBlockingPipeWithoutBlocking(this, buffer, fd, 0, true, limit);
                         },
                         .not_ready => {
                             if (comptime vtable.registerPoll) |register| {
@@ -58,21 +59,22 @@ pub fn PosixPipeReader(
 
         pub fn onPoll(parent: *This, size_hint: isize, received_hup: bool) void {
             const resizable_buffer = vtable.getBuffer(parent);
+            const limit = vtable.getLimit(parent);
             const fd = vtable.getFd(parent);
             bun.sys.syslog("onPoll({}) = {d}", .{ fd, size_hint });
 
             switch (vtable.getFileType(parent)) {
                 .nonblocking_pipe => {
-                    readPipe(parent, resizable_buffer, fd, size_hint, received_hup);
+                    readPipe(parent, resizable_buffer, fd, size_hint, received_hup, limit);
                 },
                 .file => {
-                    readFile(parent, resizable_buffer, fd, size_hint, received_hup);
+                    readFile(parent, resizable_buffer, fd, size_hint, received_hup, limit);
                 },
                 .socket => {
-                    readSocket(parent, resizable_buffer, fd, size_hint, received_hup);
+                    readSocket(parent, resizable_buffer, fd, size_hint, received_hup, limit);
                 },
                 .pipe => {
-                    readFromBlockingPipeWithoutBlocking(parent, resizable_buffer, fd, size_hint, received_hup);
+                    readFromBlockingPipeWithoutBlocking(parent, resizable_buffer, fd, size_hint, received_hup, limit);
                 },
             }
         }
@@ -98,32 +100,32 @@ pub fn PosixPipeReader(
             }.call;
         }
 
-        fn readFile(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool) void {
+        fn readFile(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*u64) void {
             const preadFn = struct {
                 pub fn call(fd1: bun.FileDescriptor, buffer: []u8, offset: usize) JSC.Maybe(usize) {
                     return bun.sys.pread(fd1, buffer, @intCast(offset));
                 }
             }.call;
             if (parent.flags.use_pread) {
-                return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .file, preadFn);
+                return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .file, preadFn, limit);
             } else {
-                return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .file, wrapReadFn(bun.sys.read));
+                return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .file, wrapReadFn(bun.sys.read), limit);
             }
         }
 
-        fn readSocket(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool) void {
-            return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .socket, wrapReadFn(bun.sys.recvNonBlock));
+        fn readSocket(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*u64) void {
+            return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .socket, wrapReadFn(bun.sys.recvNonBlock), limit);
         }
 
-        fn readPipe(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool) void {
-            return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .nonblocking_pipe, wrapReadFn(bun.sys.readNonblocking));
+        fn readPipe(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*u64) void {
+            return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .nonblocking_pipe, wrapReadFn(bun.sys.readNonblocking), limit);
         }
 
-        fn readBlockingPipe(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool) void {
-            return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .pipe, wrapReadFn(bun.sys.readNonblocking));
+        fn readBlockingPipe(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*u64) void {
+            return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .pipe, wrapReadFn(bun.sys.readNonblocking), limit);
         }
 
-        fn readWithFn(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup_: bool, comptime file_type: FileType, comptime sys_fn: *const fn (bun.FileDescriptor, []u8, usize) JSC.Maybe(usize)) void {
+        fn readWithFn(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup_: bool, comptime file_type: FileType, comptime sys_fn: *const fn (bun.FileDescriptor, []u8, usize) JSC.Maybe(usize), limit: ?*u64) void {
             _ = size_hint; // autofix
             const streaming = parent.vtable.isStreamingEnabled();
 
@@ -239,6 +241,15 @@ pub fn PosixPipeReader(
 
                 switch (sys_fn(fd, buffer, parent._offset)) {
                     .result => |bytes_read| {
+                        // maxbuf
+                        if (limit != null and resizable_buffer.items.len + bytes_read > limit.?.*) {
+                            resizable_buffer.items.len = @min(resizable_buffer.items.len + bytes_read, limit.?.*);
+                            vtable.close(parent);
+                            _ = drainChunk(parent, resizable_buffer.items, .eof);
+                            vtable.done(parent);
+                            limit.?.* = 0;
+                            return;
+                        }
                         parent._offset += bytes_read;
                         buffer = buffer[0..bytes_read];
                         resizable_buffer.items.len += bytes_read;
@@ -328,12 +339,12 @@ pub fn PosixPipeReader(
             }
         }
 
-        fn readFromBlockingPipeWithoutBlocking(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool) void {
+        fn readFromBlockingPipeWithoutBlocking(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*u64) void {
             if (parent.vtable.isStreamingEnabled()) {
                 resizable_buffer.clearRetainingCapacity();
             }
 
-            readBlockingPipe(parent, resizable_buffer, fd, size_hint, received_hup);
+            readBlockingPipe(parent, resizable_buffer, fd, size_hint, received_hup, limit);
         }
     };
 }
@@ -618,6 +629,7 @@ const BufferedReaderVTable = struct {
         onReaderError: *const fn (*anyopaque, bun.sys.Error) void,
         loop: *const fn (*anyopaque) *Async.Loop,
         eventLoop: *const fn (*anyopaque) JSC.EventLoopHandle,
+        getLimit: *const fn (*anyopaque) ?*u64,
 
         pub fn init(comptime Type: type) *const BufferedReaderVTable.Fn {
             const loop_fn = &struct {
@@ -637,6 +649,7 @@ const BufferedReaderVTable = struct {
                 .onReaderError = @ptrCast(&Type.onReaderError),
                 .eventLoop = eventLoop_fn,
                 .loop = loop_fn,
+                .getLimit = @ptrCast(&Type.getLimit),
             };
         }
     };
@@ -667,6 +680,10 @@ const BufferedReaderVTable = struct {
 
     pub fn onReaderError(this: @This(), err: bun.sys.Error) void {
         this.fns.onReaderError(this.parent, err);
+    }
+
+    pub fn getLimit(this: @This()) ?*u64 {
+        return this.fns.getLimit(this.parent);
     }
 };
 
@@ -749,6 +766,7 @@ const PosixBufferedReader = struct {
         .close = @ptrCast(&closeWithoutReporting),
         .onError = @ptrCast(&onError),
         .getFileType = @ptrCast(&getFileType),
+        .getLimit = @ptrCast(&getLimit),
     });
 
     fn getFileType(this: *const PosixBufferedReader) FileType {
@@ -807,6 +825,9 @@ const PosixBufferedReader = struct {
 
     pub fn buffer(this: *PosixBufferedReader) *std.ArrayList(u8) {
         return &@as(*PosixBufferedReader, @alignCast(@ptrCast(this)))._buffer;
+    }
+    pub fn getLimit(this: *PosixBufferedReader) ?*u64 {
+        return this.vtable.getLimit();
     }
 
     pub fn finalBuffer(this: *PosixBufferedReader) *std.ArrayList(u8) {

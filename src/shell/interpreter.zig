@@ -11299,6 +11299,11 @@ pub const Interpreter = struct {
             this.async_deinit.enqueue();
         }
 
+        pub fn getLimit(this: *IOReader) ?*u64 {
+            _ = this;
+            return null;
+        }
+
         pub fn __deinit(this: *@This()) void {
             if (this.fd != bun.invalid_fd) {
                 // windows reader closes the file descriptor
