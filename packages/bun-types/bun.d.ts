@@ -6739,7 +6739,8 @@ declare module "bun" {
       timeout?: number;
 
       /**
-       * The signal to use when killing the process after a timeout or when the AbortSignal is aborted.
+       * The signal to use when killing the process after a timeout, when the AbortSignal is aborted,
+       * or when the process goes over the `maxBuffer` limit.
        *
        * @default "SIGTERM" (signal 15)
        *
