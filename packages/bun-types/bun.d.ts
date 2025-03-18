@@ -6754,6 +6754,14 @@ declare module "bun" {
        * ```
        */
       killSignal?: string | number;
+
+      /**
+       * The maximum number of bytes the process may output. If the process goes over this limit,
+       * it is killed with signal `killSignal` (defaults to SIGTERM).
+       *
+       * @default undefined (no limit)
+       */
+      maxBuffer?: number;
     }
 
     type OptionsToSubprocess<Opts extends OptionsObject> =

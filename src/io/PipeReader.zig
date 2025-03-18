@@ -676,6 +676,7 @@ const PosixBufferedReader = struct {
     _offset: usize = 0,
     vtable: BufferedReaderVTable,
     flags: Flags = .{},
+    count: usize = 0,
 
     const Flags = packed struct {
         is_done: bool = false,
@@ -783,6 +784,7 @@ const PosixBufferedReader = struct {
         if (hasMore == .eof) {
             this.flags.received_eof = true;
         }
+        this.count += chunk.len;
 
         return this.vtable.onReadChunk(chunk, hasMore);
     }

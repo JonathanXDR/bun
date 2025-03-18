@@ -418,21 +418,9 @@ const Readable = union(enum) {
 
     pub fn init(stdio: Stdio, event_loop: *JSC.EventLoop, process: *Subprocess, result: StdioResult, allocator: std.mem.Allocator, max_size: ?i64, is_sync: bool) Readable {
         _ = allocator; // autofix
-        _ = max_size; // autofix
         _ = is_sync; // autofix
+        _ = max_size; // autofix
         assertStdioResult(result);
-
-        if (Environment.isWindows) {
-            return switch (stdio) {
-                .inherit => Readable{ .inherit = {} },
-                .ignore, .ipc, .path, .memfd => Readable{ .ignore = {} },
-                .fd => |fd| Readable{ .fd = fd },
-                .dup2 => |dup2| Readable{ .fd = dup2.out.toFd() },
-                .pipe => Readable{ .pipe = PipeReader.create(event_loop, process, result) },
-                .array_buffer, .blob => Output.panic("TODO: implement ArrayBuffer & Blob support in Stdio readable", .{}),
-                .capture => Output.panic("TODO: implement capture support in Stdio readable", .{}),
-            };
-        }
 
         if (comptime Environment.isPosix) {
             if (stdio == .pipe) {
@@ -443,12 +431,12 @@ const Readable = union(enum) {
         return switch (stdio) {
             .inherit => Readable{ .inherit = {} },
             .ignore, .ipc, .path => Readable{ .ignore = {} },
-            .fd => Readable{ .fd = result.? },
-            .memfd => Readable{ .memfd = stdio.memfd },
+            .fd => |fd| if (Environment.isPosix) Readable{ .fd = result.? } else Readable{ .fd = fd },
+            .memfd => if (Environment.isPosix) Readable{ .memfd = stdio.memfd } else Readable{ .ignore = .{} },
+            .dup2 => |dup2| if (Environment.isPosix) Output.panic("TODO: implement dup2 support in Stdio readable", .{}) else Readable{ .fd = dup2.out.toFd() },
             .pipe => Readable{ .pipe = PipeReader.create(event_loop, process, result) },
             .array_buffer, .blob => Output.panic("TODO: implement ArrayBuffer & Blob support in Stdio readable", .{}),
             .capture => Output.panic("TODO: implement capture support in Stdio readable", .{}),
-            .dup2 => Output.panic("TODO: implement dup2 support in Stdio readable", .{}),
         };
     }
 

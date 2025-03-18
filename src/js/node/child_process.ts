@@ -241,6 +241,7 @@ function execFile(file, args, options, callback) {
     windowsVerbatimArguments: options.windowsVerbatimArguments,
     shell: options.shell,
     signal: options.signal,
+    maxBuffer: options.maxBuffer,
   });
 
   let encoding;
@@ -339,55 +340,12 @@ function execFile(file, args, options, callback) {
   }
 
   const onData = (array, kind) => {
-    let total = 0;
-    let encodedLength;
     return encoding
       ? function onDataEncoded(chunk) {
-          total += chunk.length;
-
-          if (total > maxBuffer) {
-            const out = child[kind];
-            const encoding = out.readableEncoding;
-            const actualLen = Buffer.byteLength(chunk, encoding);
-            if (encodedLength === undefined) {
-              encodedLength = 0;
-
-              for (let i = 0, length = array.length; i < length; i++) {
-                encodedLength += Buffer.byteLength(array[i], encoding);
-              }
-            }
-
-            encodedLength += actualLen;
-
-            if (encodedLength > maxBuffer) {
-              const joined = ArrayPrototypeJoin.$call(array, "");
-              let combined = joined + chunk;
-              combined = StringPrototypeSlice.$call(combined, 0, maxBuffer);
-              array.length = 1;
-              array[0] = combined;
-              ex = $ERR_CHILD_PROCESS_STDIO_MAXBUFFER(kind + " maxBuffer length exceeded");
-              kill();
-            } else {
-              const val = ArrayPrototypeJoin.$call(array, "") + chunk;
-              array.length = 1;
-              array[0] = val;
-            }
-          } else {
-            $arrayPush(array, chunk);
-          }
+          $arrayPush(array, chunk);
         }
       : function onDataRaw(chunk) {
-          total += chunk.length;
-
-          if (total > maxBuffer) {
-            const truncatedLen = maxBuffer - (total - chunk.length);
-            $arrayPush(array, chunk.slice(0, truncatedLen));
-
-            ex = $ERR_CHILD_PROCESS_STDIO_MAXBUFFER(kind + " maxBuffer length exceeded");
-            kill();
-          } else {
-            $arrayPush(array, chunk);
-          }
+          $arrayPush(array, chunk);
         };
   };
 
@@ -1336,6 +1294,7 @@ class ChildProcess extends EventEmitter {
         argv0: spawnargs[0],
         windowsHide: !!options.windowsHide,
         windowsVerbatimArguments: !!options.windowsVerbatimArguments,
+        maxBuffer: options.maxBuffer,
       });
       this.pid = this.#handle.pid;
 
