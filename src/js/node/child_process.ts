@@ -1318,6 +1318,7 @@ class ChildProcess extends EventEmitter {
       if (has_ipc) {
         this.send = this.#send;
         this.disconnect = this.#disconnect;
+        this.channel = new Control();
         if (options[kFromNode]) this.#closesNeeded += 1;
       }
 
@@ -1395,6 +1396,7 @@ class ChildProcess extends EventEmitter {
       return;
     }
     this.#handle.disconnect();
+    this.channel = null;
   }
 
   kill(sig?) {
@@ -1579,6 +1581,12 @@ function abortChildProcess(child, killSignal, reason) {
     }
   } catch (err) {
     child.emit("error", err);
+  }
+}
+
+class Control extends EventEmitter {
+  constructor() {
+    super();
   }
 }
 
