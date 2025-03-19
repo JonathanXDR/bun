@@ -22,6 +22,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -37,6 +40,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -58,6 +64,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -73,6 +82,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -88,6 +100,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -103,6 +118,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -119,6 +137,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -140,6 +161,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -161,6 +185,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -179,6 +206,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -193,6 +223,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -210,6 +243,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -224,6 +260,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -240,6 +279,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -261,6 +303,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -282,6 +327,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -297,6 +345,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -312,6 +363,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -327,6 +381,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -342,6 +399,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -358,6 +418,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -379,6 +442,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -399,6 +465,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     // bun test [*]
     {
@@ -414,6 +483,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -428,6 +500,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -443,6 +518,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
       "serverReadyAction": {
         "pattern": "https://debug.bun.sh/#localhost:([0-9]+)/",
         "uriFormat": "https://debug.bun.sh/#ws://localhost:%s/",
@@ -462,6 +540,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     {
       "type": "lldb",
@@ -476,6 +557,9 @@
       },
       "console": "internalConsole",
       // Don't pause when the GC runs while the debugger is open.
+      "sourceMap": {
+        "/Users/runner/work/_temp/webkit-release/vendor/WebKit": "${workspaceFolder}/vendor/WebKit",
+      },
     },
     // Windows: bun test [file]
     {

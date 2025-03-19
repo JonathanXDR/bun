@@ -83,6 +83,8 @@ pub fn PosixPipeReader(
         const stack_buffer_len = 64 * 1024;
 
         inline fn drainChunk(parent: *This, chunk: []const u8, hasMore: ReadState) bool {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             if (parent.vtable.isStreamingEnabled()) {
                 if (chunk.len > 0) {
                     return parent.vtable.onReadChunk(chunk, hasMore);
@@ -102,6 +104,8 @@ pub fn PosixPipeReader(
         }
 
         fn readFile(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*MaxBuf) void {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             const preadFn = struct {
                 pub fn call(fd1: bun.FileDescriptor, buffer: []u8, offset: usize) JSC.Maybe(usize) {
                     return bun.sys.pread(fd1, buffer, @intCast(offset));
@@ -115,29 +119,41 @@ pub fn PosixPipeReader(
         }
 
         fn readSocket(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*MaxBuf) void {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .socket, wrapReadFn(bun.sys.recvNonBlock), limit);
         }
 
         fn readPipe(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*MaxBuf) void {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .nonblocking_pipe, wrapReadFn(bun.sys.readNonblocking), limit);
         }
 
         fn readBlockingPipe(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*MaxBuf) void {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             return readWithFn(parent, resizable_buffer, fd, size_hint, received_hup, .pipe, wrapReadFn(bun.sys.readNonblocking), limit);
         }
 
         fn readWithFn(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup_: bool, comptime file_type: FileType, comptime sys_fn: *const fn (bun.FileDescriptor, []u8, usize) JSC.Maybe(usize), limit: ?*MaxBuf) void {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             _ = size_hint; // autofix
             const streaming = parent.vtable.isStreamingEnabled();
 
             var received_hup = received_hup_;
 
             if (streaming) {
+                bun.logGroup(@src());
+                defer bun.logGroupEnd();
                 const stack_buffer = parent.vtable.eventLoop().pipeReadBuffer();
                 while (resizable_buffer.capacity == 0) {
                     const stack_buffer_cutoff = stack_buffer.len / 2;
                     var stack_buffer_head = stack_buffer;
                     while (stack_buffer_head.len > 16 * 1024) {
+                        bun.logGroup(@src());
+                        defer bun.logGroupEnd();
                         var buffer = stack_buffer_head;
 
                         switch (sys_fn(
@@ -238,11 +254,14 @@ pub fn PosixPipeReader(
             }
 
             while (true) {
+                bun.logGroup(@src());
+                defer bun.logGroupEnd();
                 resizable_buffer.ensureUnusedCapacity(16 * 1024) catch bun.outOfMemory();
                 var buffer: []u8 = resizable_buffer.unusedCapacitySlice();
 
                 switch (sys_fn(fd, buffer, parent._offset)) {
                     .result => |bytes_read| {
+                        bun.logInGroup("bytes_read = {d}, offset = {d}, buffer = {d}, limit = {?d}", .{ bytes_read, parent._offset, resizable_buffer.items.len, if (limit) |l| l.remaining_bytes else null });
                         // maxbuf
                         if (limit) |l| l.onReadBytes(bytes_read);
                         parent._offset += bytes_read;
@@ -335,6 +354,8 @@ pub fn PosixPipeReader(
         }
 
         fn readFromBlockingPipeWithoutBlocking(parent: *This, resizable_buffer: *std.ArrayList(u8), fd: bun.FileDescriptor, size_hint: isize, received_hup: bool, limit: ?*MaxBuf) void {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             if (parent.vtable.isStreamingEnabled()) {
                 resizable_buffer.clearRetainingCapacity();
             }
@@ -666,6 +687,9 @@ const BufferedReaderVTable = struct {
     ///
     /// Returning false prevents the reader from reading more data.
     pub fn onReadChunk(this: @This(), chunk: []const u8, hasMore: ReadState) bool {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
+        bun.logInGroup("onReadChunk(chunk_len={d}, hasMore={s})", .{ chunk.len, @tagName(hasMore) });
         return this.fns.onReadChunk.?(this.parent, chunk, hasMore);
     }
 
@@ -678,6 +702,8 @@ const BufferedReaderVTable = struct {
     }
 
     pub fn getLimit(this: @This()) ?*i64 {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return this.fns.getLimit(this.parent);
     }
 };
@@ -782,6 +808,8 @@ const PosixBufferedReader = struct {
     }
 
     pub fn close(this: *PosixBufferedReader) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         this.closeHandle();
     }
 
@@ -822,6 +850,8 @@ const PosixBufferedReader = struct {
         return &@as(*PosixBufferedReader, @alignCast(@ptrCast(this)))._buffer;
     }
     pub fn getLimit(this: *PosixBufferedReader) ?*i64 {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return this.vtable.getLimit();
     }
 

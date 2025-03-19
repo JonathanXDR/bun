@@ -157,7 +157,35 @@ pub const Process = struct {
         return @sizeOf(@This());
     }
 
-    pub usingnamespace bun.NewRefCounted(Process, deinit, null);
+    const rc = bun.NewRefCounted(Process, deinit, null);
+    pub fn destroy(self: *Process) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
+        bun.logInGroup("Process.destroy(pid={d})", .{self.pid});
+        rc.destroy(self);
+    }
+
+    pub fn ref(self: *Process) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
+        bun.logInGroup("Process.ref(pid={d}) {d} -> {d}", .{ self.pid, self.ref_count, self.ref_count + 1 });
+        rc.ref(self);
+    }
+
+    pub fn deref(self: *Process) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
+        bun.logInGroup("Process.deref(pid={d}) {d} -> {d}", .{ self.pid, self.ref_count, self.ref_count - 1 });
+        rc.deref(self);
+    }
+
+    pub fn new(t: Process) *Process {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
+        bun.logInGroup("Process.new(pid={d})", .{t.pid});
+        const ptr = rc.new(t);
+        return ptr;
+    }
 
     pub fn setExitHandler(this: *Process, handler: anytype) void {
         this.exit_handler.init(handler);

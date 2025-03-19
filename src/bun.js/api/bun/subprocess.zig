@@ -59,6 +59,8 @@ pub const MaxBuf = struct {
     // (once both are null, it is freed)
 
     pub fn createForSubprocess(owner: *Subprocess, ptr: *?*MaxBuf, initial: ?i64) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         if (initial == null) {
             ptr.* = null;
             return;
@@ -72,13 +74,19 @@ pub const MaxBuf = struct {
         ptr.* = maxbuf;
     }
     fn disowned(this: *MaxBuf) bool {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return this.owned_by_subprocess != null and this.owned_by_reader == false;
     }
     fn destroy(this: *MaxBuf) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         bun.assert(this.disowned());
         bun.default_allocator.destroy(this);
     }
     pub fn removeFromSubprocess(ptr: *?*MaxBuf) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         if (ptr.* == null) return;
         const this = ptr.*.?;
         bun.assert(this.owned_by_subprocess != null);
@@ -89,6 +97,8 @@ pub const MaxBuf = struct {
         }
     }
     pub fn addToPipereader(value: ?*MaxBuf, ptr: *?*MaxBuf) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         if (value == null) return;
         bun.assert(ptr.* == null);
         ptr.* = value;
@@ -96,6 +106,8 @@ pub const MaxBuf = struct {
         value.?.owned_by_reader = true;
     }
     pub fn removeFromPipereader(ptr: *?*MaxBuf) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         if (ptr.* == null) return;
         const this = ptr.*.?;
         bun.assert(this.owned_by_reader);
@@ -593,6 +605,8 @@ const Readable = union(enum) {
     }
 
     pub fn toBufferedValue(this: *Readable, globalThis: *JSC.JSGlobalObject) bun.JSError!JSValue {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         switch (this.*) {
             .fd => |fd| {
                 return fd.toJS(globalThis);
@@ -701,6 +715,8 @@ pub fn timeoutCallback(this: *Subprocess) JSC.API.Bun.Timer.EventLoopTimer.Arm {
 }
 
 pub fn onMaxBuffer(this: *Subprocess) void {
+    bun.logGroup(@src());
+    defer bun.logGroupEnd();
     // if this is problematic, maybe nextTick?
     this.exited_due_to_maxbuf = true;
     _ = this.tryKill(this.killSignal);
@@ -1147,6 +1163,8 @@ pub const PipeReader = struct {
     }
 
     pub fn readAll(this: *PipeReader) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         if (this.state == .pending)
             this.reader.read(this.limit);
     }
@@ -1178,6 +1196,8 @@ pub const PipeReader = struct {
     pub const toJS = toReadableStream;
 
     pub fn onReaderDone(this: *PipeReader) void {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         const owned = this.toOwnedSlice();
         this.state = .{ .done = owned };
         if (this.process) |process| {
@@ -1200,6 +1220,9 @@ pub const PipeReader = struct {
     }
 
     pub fn toOwnedSlice(this: *PipeReader) []u8 {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
+        bun.logInGroup("toOwnedSlice, len = {d}", .{this.reader._buffer.items.len});
         if (this.state == .done) {
             return this.state.done;
         }
@@ -1243,6 +1266,8 @@ pub const PipeReader = struct {
     }
 
     pub fn toBuffer(this: *PipeReader, globalThis: *JSC.JSGlobalObject) JSC.JSValue {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         switch (this.state) {
             .done => |bytes| {
                 defer this.state = .{ .done = &.{} };
@@ -1301,6 +1326,8 @@ pub const PipeReader = struct {
     }
 
     pub fn getLimit(this: *PipeReader) ?*MaxBuf {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return this.limit;
     }
 };
@@ -1865,10 +1892,14 @@ pub fn getSignalCode(
 }
 
 pub fn spawn(globalThis: *JSC.JSGlobalObject, args: JSValue, secondaryArgsValue: ?JSValue) bun.JSError!JSValue {
+    bun.logGroup(@src());
+    defer bun.logGroupEnd();
     return spawnMaybeSync(globalThis, args, secondaryArgsValue, false);
 }
 
 pub fn spawnSync(globalThis: *JSC.JSGlobalObject, args: JSValue, secondaryArgsValue: ?JSValue) bun.JSError!JSValue {
+    bun.logGroup(@src());
+    defer bun.logGroupEnd();
     return spawnMaybeSync(globalThis, args, secondaryArgsValue, true);
 }
 
@@ -1956,6 +1987,8 @@ pub fn spawnMaybeSync(
     secondaryArgsValue: ?JSValue,
     comptime is_sync: bool,
 ) bun.JSError!JSValue {
+    bun.logGroup(@src());
+    defer bun.logGroupEnd();
     if (comptime is_sync) {
         // We skip this on Windows due to test failures.
         if (comptime !Environment.isWindows) {

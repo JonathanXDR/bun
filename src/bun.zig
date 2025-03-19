@@ -4241,3 +4241,47 @@ pub fn freeSensitive(allocator: std.mem.Allocator, slice: anytype) void {
 
 pub const server = @import("./bun.js/api/server.zig");
 pub const macho = @import("./macho.zig");
+
+pub fn printIndent() void {
+    std.io.getStdOut().writer().print("\x1b[90m", .{}) catch {};
+    for (0..indent) |_| {
+        std.io.getStdOut().writer().print("│ ", .{}) catch {};
+    }
+    std.io.getStdOut().writer().print("\x1b[m", .{}) catch {};
+}
+
+var indent: usize = 0;
+var last_was_start = false;
+var wants_quiet: ?bool = null;
+fn getWantsQuiet() bool {
+    if (wants_quiet) |v| return v;
+    if (bun.getenvZ("WANTS_QUIET")) |val| {
+        if (!std.mem.eql(u8, val, "0")) {
+            wants_quiet = true;
+            return wants_quiet.?;
+        }
+    }
+    wants_quiet = false;
+    return wants_quiet.?;
+}
+pub fn logGroup(pos: std.builtin.SourceLocation) void {
+    if (getWantsQuiet()) return;
+    printIndent();
+    std.io.getStdOut().writer().print("\x1b[32m++ \x1b[36m{s}\x1b[37m:\x1b[93m{d}\x1b[37m:\x1b[33m{d}\x1b[37m: \x1b[35m{s}\x1b[m\n", .{ pos.file, pos.line, pos.column, pos.fn_name }) catch {};
+    indent += 1;
+    last_was_start = true;
+}
+pub fn logGroupEnd() void {
+    if (getWantsQuiet()) return;
+    indent -= 1;
+    if (last_was_start) std.io.getStdOut().writer().print("\x1b[A", .{}) catch {};
+    printIndent();
+    std.io.getStdOut().writer().print("\x1b[32m{s}\x1b[m\n", .{if (last_was_start) "+-" else "--"}) catch {};
+    last_was_start = false;
+}
+pub fn logInGroup(comptime fmtt: []const u8, args: anytype) void {
+    if (getWantsQuiet()) return;
+    printIndent();
+    std.io.getStdOut().writer().print(fmtt ++ "\n", args) catch {};
+    last_was_start = false;
+}

@@ -514,6 +514,8 @@ pub const LifecycleScriptSubprocess = struct {
     }
 
     pub fn getLimit(_: *LifecycleScriptSubprocess) ?*i64 {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return null;
     }
 };
