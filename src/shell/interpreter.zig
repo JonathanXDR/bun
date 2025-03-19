@@ -11299,8 +11299,9 @@ pub const Interpreter = struct {
             this.async_deinit.enqueue();
         }
 
-        pub fn getLimit(this: *IOReader) ?*u64 {
-            _ = this;
+        pub fn getLimit(_: *IOReader) ?*i64 {
+            bun.logGroup(@src());
+            defer bun.logGroupEnd();
             return null;
         }
 

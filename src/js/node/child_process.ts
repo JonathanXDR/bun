@@ -520,6 +520,7 @@ function spawnSync(file, args, options) {
       exitCode,
       signalCode,
       exitedDueToTimeout,
+      exitedDueToMaxBuffer,
       pid,
     } = Bun.spawnSync({
       // normalizeSpawnargs has already prepended argv0 to the spawnargs array
@@ -574,6 +575,15 @@ function spawnSync(file, args, options) {
       "ETIMEDOUT",
     );
   }
+  if (exitedDueToMaxBuffer && error == null) {
+    result.error = new SystemError(
+      "spawnSync " + options.file + " ENOBUFS (stdout or stderr buffer reached maxBuffer size limit)",
+      options.file,
+      "spawnSync " + options.file,
+      enobufsErrorCode(),
+      "ENOBUFS",
+    );
+  }
 
   if (result.error) {
     result.error.syscall = "spawnSync " + options.file;
@@ -583,6 +593,7 @@ function spawnSync(file, args, options) {
   return result;
 }
 const etimedoutErrorCode = $newZigFunction("node_util_binding.zig", "etimedoutErrorCode", 0);
+const enobufsErrorCode = $newZigFunction("node_util_binding.zig", "enobufsErrorCode", 0);
 
 /**
  * Spawns a file as a shell synchronously.

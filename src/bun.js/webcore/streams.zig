@@ -4702,8 +4702,9 @@ pub const FileReader = struct {
         return this.reader.memoryCost() + this.buffered.capacity;
     }
 
-    pub fn getLimit(this: *const FileReader) ?*u64 {
-        _ = this;
+    pub fn getLimit(_: *const FileReader) ?*i64 {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return null;
     }
 

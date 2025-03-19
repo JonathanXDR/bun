@@ -4241,3 +4241,17 @@ pub fn freeSensitive(allocator: std.mem.Allocator, slice: anytype) void {
 
 pub const server = @import("./bun.js/api/server.zig");
 pub const macho = @import("./macho.zig");
+
+var indent: usize = 0;
+pub fn logGroup(pos: std.builtin.SourceLocation) void {
+    std.io.getStdOut().writer().writeByteNTimes(' ', indent * 2) catch {};
+    std.io.getStdOut().writer().print("{s}:{d}:{d}: {s}\n", .{ pos.file, pos.line, pos.column, pos.fn_name }) catch {};
+    indent += 1;
+}
+pub fn logGroupEnd() void {
+    indent -= 1;
+}
+pub fn logInGroup(comptime fmtt: []const u8, args: anytype) void {
+    std.io.getStdOut().writer().writeByteNTimes(' ', indent * 2) catch {};
+    std.io.getStdOut().writer().print(fmtt ++ "\n", args) catch {};
+}

@@ -148,7 +148,9 @@ pub const ProcessHandle = struct {
         return this.state.event_loop.loop;
     }
 
-    pub fn getLimit(_: *This) ?*u64 {
+    pub fn getLimit(_: *This) ?*i64 {
+        bun.logGroup(@src());
+        defer bun.logGroupEnd();
         return null;
     }
 };

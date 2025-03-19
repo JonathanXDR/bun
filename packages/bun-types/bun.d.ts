@@ -7008,7 +7008,8 @@ declare module "bun" {
     resourceUsage: ResourceUsage;
 
     signalCode?: string;
-    exitedDueToTimeout?: true;
+    exitedDueToTimeout?: boolean;
+    exitedDueToMaxBuffer?: boolean;
     pid: number;
   }
 
