@@ -597,7 +597,7 @@ pub fn WindowsPipeReader(
             _ = this.startReading();
         }
 
-        pub fn read(this: *This) void {
+        pub fn read(this: *This, _: ?*i64) void {
             // we cannot sync read pipes on Windows so we just check if we are paused to resume the reading
             this.unpause();
         }
