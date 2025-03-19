@@ -149,8 +149,6 @@ pub const ProcessHandle = struct {
     }
 
     pub fn getLimit(_: *This) ?*i64 {
-        bun.logGroup(@src());
-        defer bun.logGroupEnd();
         return null;
     }
 };
