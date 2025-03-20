@@ -15,7 +15,7 @@ async function toUtf8(out: ReadableStream<Uint8Array>): Promise<string> {
 describe("yes is killed", () => {
   test("Bun.spawn", async () => {
     const timeStart = Date.now();
-    const proc = Bun.spawn([...(isWindows ? [bunExe(), "exec"] : []), "yes"], {
+    const proc = Bun.spawn([bunExe(), "exec", "yes"], {
       maxBuffer: 256,
       killSignal: isWindows ? "SIGKILL" : "SIGHUP",
       stdio: ["pipe", "pipe", "pipe"],
@@ -33,7 +33,7 @@ describe("yes is killed", () => {
 
   test("Bun.spawnSync", () => {
     const timeStart = Date.now();
-    const proc = Bun.spawnSync([...(isWindows ? [bunExe(), "exec"] : []), "yes"], {
+    const proc = Bun.spawnSync([bunExe(), "exec", "yes"], {
       maxBuffer: 256,
       killSignal: isWindows ? "SIGKILL" : "SIGHUP",
       stdio: ["pipe", "pipe", "pipe"],
@@ -79,7 +79,7 @@ describe("maxBuffer infinity does not limit the number of bytes", () => {
 describe("timeout kills the process", () => {
   test("Bun.spawn", async () => {
     const timeStart = Date.now();
-    const proc = Bun.spawn([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "5"], {
+    const proc = Bun.spawn([bunExe(), "exec", "sleep 5"], {
       timeout: 100,
       killSignal: isWindows ? "SIGKILL" : "SIGHUP",
       stdio: ["pipe", "pipe", "pipe"],
@@ -97,7 +97,7 @@ describe("timeout kills the process", () => {
 
   test("Bun.spawnSync", () => {
     const timeStart = Date.now();
-    const proc = Bun.spawnSync([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "5"], {
+    const proc = Bun.spawnSync([bunExe(), "exec", "sleep 5"], {
       timeout: 100,
       killSignal: isWindows ? "SIGKILL" : "SIGHUP",
       stdio: ["pipe", "pipe", "pipe"],
@@ -118,7 +118,7 @@ describe("timeout kills the process", () => {
 describe("timeout Infinity does not kill the process", () => {
   test("Bun.spawn", async () => {
     const timeStart = Date.now();
-    const proc = Bun.spawn([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "1"], {
+    const proc = Bun.spawn([bunExe(), "exec", "sleep 1"], {
       timeout: Infinity,
       killSignal: isWindows ? "SIGKILL" : "SIGHUP",
       stdio: ["pipe", "pipe", "pipe"],
@@ -136,7 +136,7 @@ describe("timeout Infinity does not kill the process", () => {
 
   test("Bun.spawnSync", () => {
     const timeStart = Date.now();
-    const proc = Bun.spawnSync([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "1"], {
+    const proc = Bun.spawnSync([bunExe(), "exec", "sleep 1"], {
       timeout: Infinity,
       killSignal: isWindows ? "SIGKILL" : "SIGHUP",
       stdio: ["pipe", "pipe", "pipe"],
