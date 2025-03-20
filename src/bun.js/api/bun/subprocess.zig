@@ -2136,7 +2136,7 @@ pub fn spawnMaybeSync(
     }
 
     inline for (0..stdio.len) |fd_index| {
-        if (stdio[fd_index].canUseMemfd(is_sync)) {
+        if (stdio[fd_index].canUseMemfd(is_sync, fd_index > 0 and maxBuffer != null)) {
             stdio[fd_index].useMemfd(fd_index);
         }
     }
