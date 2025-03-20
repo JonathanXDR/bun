@@ -244,7 +244,7 @@ pub fn PosixPipeReader(
                         // maxbuf
                         if (limit != null) {
                             // a negative limit indicates that we are exiting due to maxbuf
-                            limit.?.* -= @bitCast(bytes_read);
+                            limit.?.* = std.math.sub(i64, limit.?.*, std.math.cast(i64, bytes_read) orelse 0) catch -1;
                         }
                         parent._offset += bytes_read;
                         buffer = buffer[0..bytes_read];

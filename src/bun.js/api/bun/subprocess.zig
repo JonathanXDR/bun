@@ -2119,7 +2119,7 @@ pub fn spawnMaybeSync(
             }
 
             if (try args.get(globalThis, "maxBuffer")) |val| {
-                if (val.isNumber()) {
+                if (val.isNumber() and val.isFinite()) { // 'Infinity' does not set maxBuffer
                     maxBuffer = val.coerce(i64, globalThis);
                 }
             }
