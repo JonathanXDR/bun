@@ -250,7 +250,17 @@ pub fn PosixPipeReader(
                         buffer = buffer[0..bytes_read];
                         resizable_buffer.items.len += bytes_read;
 
-                        if (bytes_read == 0 or limit != null and limit.?.* < 0) {
+                        if (limit != null and limit.?.* < 0) {
+                            // TODO: ask the subprocess to kill its child. this should be ok to run multiple times, unlike vtable.close()
+                            // issue:
+                            // sometimes, readWithFn can get called again after already calling close() drainChunk() done()
+                            // this reproduces often with rr (likely due to different thread timing)
+                            vtable.close(parent);
+                            _ = drainChunk(parent, resizable_buffer.items, .eof);
+                            vtable.done(parent);
+                            return;
+                        }
+                        if (bytes_read == 0) {
                             vtable.close(parent);
                             _ = drainChunk(parent, resizable_buffer.items, .eof);
                             vtable.done(parent);
