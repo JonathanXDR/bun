@@ -75,3 +75,79 @@ describe("maxBuffer infinity does not limit the number of bytes", () => {
     expect(result).toBe(sample.repeat(sample_repeat_count) + "\n");
   });
 });
+
+describe("timeout kills the process", () => {
+  test("Bun.spawn", async () => {
+    const timeStart = Date.now();
+    const proc = Bun.spawn([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "5"], {
+      timeout: 100,
+      killSignal: isWindows ? "SIGKILL" : "SIGHUP",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    await proc.exited;
+    expect(proc.exitCode).toBe(null);
+    expect(proc.signalCode).toBe(isWindows ? "SIGKILL" : "SIGHUP");
+    const timeEnd = Date.now();
+    expect(timeEnd - timeStart).toBeLessThan(200); // make sure it's terminating early
+    const result = await toUtf8(proc.stdout);
+    expect(result).toBe("");
+    const stderr = await toUtf8(proc.stderr);
+    expect(stderr).toBe("");
+  });
+
+  test("Bun.spawnSync", () => {
+    const timeStart = Date.now();
+    const proc = Bun.spawnSync([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "5"], {
+      timeout: 100,
+      killSignal: isWindows ? "SIGKILL" : "SIGHUP",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    expect(proc.exitedDueToTimeout).toBe(true);
+    expect(proc.exitCode).toBe(null);
+    expect(proc.signalCode).toBe(isWindows ? "SIGKILL" : "SIGHUP");
+    const timeEnd = Date.now();
+    expect(timeEnd - timeStart).toBeGreaterThan(100); // make sure it actually waits
+    expect(timeEnd - timeStart).toBeLessThan(200); // make sure it's terminating early
+    const result = proc.stdout.toString("utf-8");
+    expect(result).toBe("");
+    const stderr = proc.stderr.toString("utf-8");
+    expect(stderr).toBe("");
+  });
+});
+
+describe("timeout Infinity does not kill the process", () => {
+  test("Bun.spawn", async () => {
+    const timeStart = Date.now();
+    const proc = Bun.spawn([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "1"], {
+      timeout: Infinity,
+      killSignal: isWindows ? "SIGKILL" : "SIGHUP",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    await proc.exited;
+    expect(proc.exitCode).toBe(0);
+    const timeEnd = Date.now();
+    expect(timeEnd - timeStart).toBeGreaterThan(1000); // make sure it actually waits
+    expect(timeEnd - timeStart).toBeLessThan(1500); // make sure it's terminating early
+    const result = await toUtf8(proc.stdout);
+    expect(result).toBe("");
+    const stderr = await toUtf8(proc.stderr);
+    expect(stderr).toBe("");
+  });
+
+  test("Bun.spawnSync", () => {
+    const timeStart = Date.now();
+    const proc = Bun.spawnSync([...(isWindows ? [bunExe(), "exec"] : []), "sleep", "1"], {
+      timeout: Infinity,
+      killSignal: isWindows ? "SIGKILL" : "SIGHUP",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    expect(proc.exitCode).toBe(0);
+    const timeEnd = Date.now();
+    expect(timeEnd - timeStart).toBeGreaterThan(1000); // make sure it actually waits
+    expect(timeEnd - timeStart).toBeLessThan(1500);
+    const result = proc.stdout.toString("utf-8");
+    expect(result).toBe("");
+    const stderr = proc.stderr.toString("utf-8");
+    expect(stderr).toBe("");
+  });
+});

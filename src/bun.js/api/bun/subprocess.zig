@@ -2109,7 +2109,7 @@ pub fn spawnMaybeSync(
             }
 
             if (try args.get(globalThis, "timeout")) |val| {
-                if (val.isNumber()) {
+                if (val.isNumber() and val.isFinite()) {
                     timeout = @max(val.coerce(i32, globalThis), 1);
                 }
             }
