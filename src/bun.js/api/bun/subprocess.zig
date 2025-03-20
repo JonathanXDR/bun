@@ -2119,7 +2119,8 @@ pub fn spawnMaybeSync(
             }
 
             if (try args.get(globalThis, "maxBuffer")) |val| {
-                if (val.isNumber() and val.isFinite()) { // 'Infinity' does not set maxBuffer
+                if (val.isNumber() and val.isFinite() and is_sync) { // 'Infinity' does not set maxBuffer
+                    // TODO: support maxBuffer for async (definitely can't use a pointer to a stack variable in that case)
                     maxBuffer = val.coerce(i64, globalThis);
                 }
             }
@@ -2486,6 +2487,7 @@ pub fn spawnMaybeSync(
     if (!subprocess.process.hasExited()) {
         jsc_vm.onSubprocessSpawn(subprocess.process);
     }
+    var kill_attempted = false;
 
     // We cannot release heap access while JS is running
     {
@@ -2495,6 +2497,11 @@ pub fn spawnMaybeSync(
             jsc_vm.uwsLoop().internal_loop_data.jsc_vm = old_vm;
         }
         while (subprocess.hasPendingActivityNonThreadsafe()) {
+            if (maxBuffer != null and (maxbuf_stdout < 0 or maxbuf_stderr < 0) and !kill_attempted) {
+                kill_attempted = true;
+                _ = subprocess.tryKill(subprocess.killSignal);
+            }
+
             if (subprocess.stdin == .buffer) {
                 subprocess.stdin.buffer.watch();
             }

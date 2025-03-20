@@ -243,23 +243,13 @@ pub fn PosixPipeReader(
                     .result => |bytes_read| {
                         // maxbuf
                         if (limit != null) {
-                            // a negative limit indicates that we are exiting due to maxbuf
+                            // a negative limit indicates a request to kill the process due to maxbuf
                             limit.?.* = std.math.sub(i64, limit.?.*, std.math.cast(i64, bytes_read) orelse 0) catch -1;
                         }
                         parent._offset += bytes_read;
                         buffer = buffer[0..bytes_read];
                         resizable_buffer.items.len += bytes_read;
 
-                        if (limit != null and limit.?.* < 0) {
-                            // TODO: ask the subprocess to kill its child. this should be ok to run multiple times, unlike vtable.close()
-                            // issue:
-                            // sometimes, readWithFn can get called again after already calling close() drainChunk() done()
-                            // this reproduces often with rr (likely due to different thread timing)
-                            vtable.close(parent);
-                            _ = drainChunk(parent, resizable_buffer.items, .eof);
-                            vtable.done(parent);
-                            return;
-                        }
                         if (bytes_read == 0) {
                             vtable.close(parent);
                             _ = drainChunk(parent, resizable_buffer.items, .eof);
