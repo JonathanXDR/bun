@@ -290,6 +290,8 @@ function execFile(file, args, options, callback) {
       return;
     }
 
+    // TODO: detect maxbuf
+
     if (args?.length) cmd += ` ${ArrayPrototypeJoin.$call(args, " ")}`;
     if (!ex) {
       const { getSystemErrorName } = require("node:util");
@@ -339,40 +341,20 @@ function execFile(file, args, options, callback) {
     }, options.timeout).unref();
   }
 
-  const onData = (array, kind) => {
-    return encoding
-      ? function onDataEncoded(chunk) {
-          $arrayPush(array, chunk);
-        }
-      : function onDataRaw(chunk) {
-          $arrayPush(array, chunk);
-        };
-  };
-
   if (child.stdout) {
     if (encoding) child.stdout.setEncoding(encoding);
 
-    child.stdout.on(
-      "data",
-      maxBuffer === Infinity
-        ? function onUnlimitedSizeBufferedData(chunk) {
-            $arrayPush(_stdout, chunk);
-          }
-        : onData(_stdout, "stdout"),
-    );
+    child.stdout.on("data", function onDataStdout(chunk) {
+      $arrayPush(_stdout, chunk);
+    });
   }
 
   if (child.stderr) {
     if (encoding) child.stderr.setEncoding(encoding);
 
-    child.stderr.on(
-      "data",
-      maxBuffer === Infinity
-        ? function onUnlimitedSizeBufferedData(chunk) {
-            $arrayPush(_stderr, chunk);
-          }
-        : onData(_stderr, "stderr"),
-    );
+    child.stderr.on("data", function onDataStderr(chunk) {
+      $arrayPush(_stderr, chunk);
+    });
   }
 
   child.addListener("close", exitHandler);

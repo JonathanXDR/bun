@@ -14,7 +14,7 @@ async function toUtf8(out: ReadableStream<Uint8Array>): Promise<string> {
 
 describe("yes is killed", () => {
   // TODO
-  test.todo("Bun.spawn", async () => {
+  test("Bun.spawn", async () => {
     const timeStart = Date.now();
     const proc = Bun.spawn([bunExe(), "exec", "yes"], {
       maxBuffer: 256,
