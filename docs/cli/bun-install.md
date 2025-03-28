@@ -246,3 +246,30 @@ bun uses a binary format for caching NPM registry responses. This loads much fas
 You will see these files in `~/.bun/install/cache/*.npm`. The filename pattern is `${hash(packageName)}.npm`. It’s a hash so that extra directories don’t need to be created for scoped packages.
 
 Bun's usage of `Cache-Control` ignores `Age`. This improves performance, but means bun may be about 5 minutes out of date to receive the latest package version metadata from npm.
+
+## Automatic Token Resolution
+
+Bun now supports automatic resolution of authentication tokens for private registries from a global `bunfig.toml` or `.npmrc` file. When a local `bunfig.toml` or `.npmrc` file specifies a registry without an associated token, Bun will:
+
+- Check for a matching token in the global `bunfig.toml` or `.npmrc` configuration.
+- Automatically apply that token to authenticate requests to the private registry.
+
+This feature simplifies token management and avoids the need for manual environment variable updates.
+
+### Example
+
+Here is an example of a global `bunfig.toml` file with token configuration:
+
+```toml
+[install.scopes]
+"@myorg" = { token = "my-global-token", url = "https://registry.myorg.com/" }
+```
+
+And a local `bunfig.toml` file:
+
+```toml
+[install.scopes]
+"@myorg" = { url = "https://registry.myorg.com/" }
+```
+
+In this case, Bun will automatically use the token from the global configuration to authenticate requests to the `@myorg` registry.
